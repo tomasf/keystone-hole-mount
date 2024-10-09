@@ -8,5 +8,5 @@ The design features a snap-in slot for the keystone module and a threaded exteri
 
 This model is fully parametric and written in SwiftSCAD, allowing you to easily adjust parameters in the source code to fit your exact needs.
 
-This model uses [SwiftSCAD](https://github.com/tomasf/SwiftSCAD) and [Helical](https://github.com/tomasf/Helical).
+This model uses [SwiftSCAD](https://github.com/tomasf/SwiftSCAD), [Helical](https://github.com/tomasf/Helical) and [my Keystone library](https://github.com/tomasf/Keystone).
 Also available on [Printables](https://www.printables.com/model/1025872-hole-mount-keystone-module-holder).
