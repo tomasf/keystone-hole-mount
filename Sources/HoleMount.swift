@@ -2,7 +2,7 @@ import SwiftSCAD
 import Helical
 import Keystone
 
-struct PanelMount: Shape3D {
+struct HoleMount: Shape3D {
     let outerDiameter: Double
     let slotCount: Int
     let hasCutout: Bool // For smaller sizes where you need to cut away the walls to make room for inserting the module
