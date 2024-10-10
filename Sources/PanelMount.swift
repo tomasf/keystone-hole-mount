@@ -118,18 +118,3 @@ struct PanelMount: Shape3D {
             }
     }
 }
-
-public extension Circle {
-    /// Calculates the corresponding coordinate on the circle (X or Y) given the known coordinate.
-    ///
-    /// Given a known coordinate (either X or Y), this function returns the positive corresponding coordinate.
-    ///
-    /// - Parameter knownCoordinate: The known coordinate (either X or Y).
-    /// - Returns: The positive corresponding coordinate (Y if X is provided, X if Y is provided).
-    /// - Precondition: The known coordinate must be within the circle's radius.
-    ///
-    func correspondingCoordinate(for knownCoordinate: Double) -> Double {
-        precondition(abs(knownCoordinate) <= radius, "The coordinate must be within the circle's radius.")
-        return (radius * radius - knownCoordinate * knownCoordinate).squareRoot()
-    }
-}
