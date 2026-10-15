@@ -10,16 +10,25 @@ await Project {
         @Parameter("Hole diameter", in: 30...70, step: 1, unit: "mm", description: "Diameter of the hole the mount goes through")
         var diameter = 44.0
 
-        @Parameter("Modules", in: 1...3, description: "Number of keystone modules side by side; more need a larger hole")
-        var slotCount = 1
+        @Parameter("Cut away walls", description: "Open the sides to make room for inserting modules; needed for smaller holes")
+        var cutThrough = false
+
+        // As many modules as fit in the hole, even at the largest tolerance. A hole with room for only
+        // one doesn't offer the choice.
+        let maxSlotCount = HoleMount(outerDiameter: diameter, cutThrough: cutThrough).maxSlotCount(tolerance: 0.6)
+        let slotCount: Int
+        if maxSlotCount > 1 {
+            @Parameter("Modules", in: 1...maxSlotCount, description: "Number of keystone modules side by side; a larger hole fits more")
+            var chosenSlotCount = 1
+            slotCount = chosenSlotCount
+        } else {
+            slotCount = 1
+        }
 
         @Parameter("Max panel thickness", in: 5...40, step: 1, unit: "mm", description: "The thickest panel the mount can clamp")
         var panelThickness = 20.0
 
-        @Parameter("Cut away walls", description: "Open the sides to make room for inserting modules; needed for smaller holes")
-        var cutThrough = false
-
-        @Parameter("Tolerance", in: 0...0.6, step: 0.05, unit: "mm", description: "Extra clearance for the modules and the thread")
+        @Parameter("Tolerance", in: 0...0.6, step: 0.05, unit: "mm", description: "Extra clearance for the modules and the thread. The default usually works fine.")
         var tolerance = 0.3
 
         Environment {

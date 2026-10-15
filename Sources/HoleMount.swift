@@ -48,9 +48,28 @@ struct HoleMount: Geometry3D {
         }
     }
 
+    /// The most modules the mount has room for at the given tolerance: no more than whose latches fit
+    /// within the thread, or with the walls cut away, whose bodies fit in the hole, and always at least one
+    func maxSlotCount(tolerance: Double) -> Int {
+        let latchWidth = KeystoneSlot.Metrics(environment: .defaultEnvironment.withTolerance(tolerance)).latchSpaceSize.x
+        let latchRoom = thread.minorDiameter - tolerance - latchWidth
+        var fitting = Int((latchRoom / moduleBodyWidth).rounded(.down)) + 1
+        if hasCutout {
+            let bodyRoom = outerDiameter - 2 * tolerance
+            fitting = min(fitting, Int((bodyRoom / moduleBodyWidth).nextDown.rounded(.down)))
+        }
+        return max(1, fitting)
+    }
+
+    /// The number of modules to make room for: as many as asked for, as long as they fit
+    var fittingSlotCount: Int {
+        min(slotCount, maxSlotCount(tolerance: tolerance))
+    }
+
     @GeometryBuilder3D
     var main: any Geometry3D {
         let latchSize = metrics.latchSpaceSize
+        let slotCount = fittingSlotCount
         let latchSpaceWidth = latchSize.x + moduleBodyWidth * Double(slotCount - 1)
         let bodyWidthFull = moduleBodyWidth * Double(slotCount) + tolerance
 
