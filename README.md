@@ -3,6 +3,8 @@
 This 3D model allows you to securely mount standard keystone modules, such as Ethernet jacks or USB ports, in tabletops or panels up to
 20mm thick. It’s suitable for routing network or peripheral connections through desks, workstations, or other surfaces.
 
+Try it in your browser with the [web customizer](https://tomasf.github.io/keystone-hole-mount/), where you can set the hole diameter, the number of modules and the panel thickness and download a ready-to-print 3MF file.
+
 The model comes in several hole diameters: 30 mm, 32 mm, 38 mm, 40 mm, 44 mm, 50 mm, 54 mm, and 60 mm. The 60mm version includes a variant
 that fits two modules side by side. Please note that the 30 mm and 32 mm versions may not accommodate larger keystone modules, depending on
 their exact dimensions.
