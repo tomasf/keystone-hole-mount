@@ -14,6 +14,7 @@ struct HoleMount: Geometry3D {
     let maxPanelThickness: Double
     var fullLength: Double { maxPanelThickness + nutThickness * 0.8 }
     let moduleBodyWidth = 18.0
+    let moduleSpacing: Double
     let wallThickness = 3.0
 
     let nutFlangeWidth = 6.0
@@ -33,9 +34,10 @@ struct HoleMount: Geometry3D {
         form: TrapezoidalThreadform(angle: 90°, crestWidth: 0.2)
     )}
 
-    init(outerDiameter: Double, slotCount: Int = 1, yOffset: Double = 0, maxPanelThickness: Double = 20, cutThrough: Bool = false) {
+    init(outerDiameter: Double, slotCount: Int = 1, moduleSpacing: Double = 18, yOffset: Double = 0, maxPanelThickness: Double = 20, cutThrough: Bool = false) {
         self.outerDiameter = outerDiameter
         self.slotCount = slotCount
+        self.moduleSpacing = moduleSpacing
         self.yOffset = yOffset
         self.maxPanelThickness = maxPanelThickness
         self.hasCutout = cutThrough
@@ -48,17 +50,41 @@ struct HoleMount: Geometry3D {
         }
     }
 
-    /// The most modules the mount has room for at the given tolerance: no more than whose latches fit
-    /// within the thread, or with the walls cut away, whose bodies fit in the hole, and always at least one
+    /// The most modules the mount has room for at the given tolerance, and always at least one
     func maxSlotCount(tolerance: Double) -> Int {
-        let latchWidth = KeystoneSlot.Metrics(environment: .defaultEnvironment.withTolerance(tolerance)).latchSpaceSize.x
-        let latchRoom = thread.minorDiameter - tolerance - latchWidth
-        var fitting = Int((latchRoom / moduleBodyWidth).rounded(.down)) + 1
-        if hasCutout {
-            let bodyRoom = outerDiameter - 2 * tolerance
-            fitting = min(fitting, Int((bodyRoom / moduleBodyWidth).nextDown.rounded(.down)))
+        let room = moduleRoom(tolerance: tolerance)
+        var fitting = Int((room.centers / moduleSpacing).rounded(.down)) + 1
+        if let bodies = room.bodies {
+            fitting = min(fitting, Int((bodies / moduleSpacing).nextDown.rounded(.down)) + 1)
         }
         return max(1, fitting)
+    }
+
+    /// The widest spacing at which this many modules fit at the given tolerance, in steps of 0.5 mm
+    func maxModuleSpacing(tolerance: Double) -> Double {
+        guard slotCount > 1 else { return moduleSpacing }
+        let room = moduleRoom(tolerance: tolerance)
+        let gaps = Double(slotCount - 1)
+        var spacing = room.centers / gaps
+        if let bodies = room.bodies {
+            spacing = min(spacing, (bodies / gaps).nextDown)
+        }
+        return (spacing * 2).rounded(.down) / 2
+    }
+
+    /// How far modules' corners keep from the thread's root, so their openings don't cut through it
+    private let minimumThreadWall = 1.0
+
+    /// How far apart the outermost modules' centers can be: as far as keeps every module's corners
+    /// clear of the thread's root, and with the walls cut away, the bodies within the hole
+    private func moduleRoom(tolerance: Double) -> (centers: Double, bodies: Double?) {
+        let metrics = KeystoneSlot.Metrics(environment: .defaultEnvironment.withTolerance(tolerance))
+        let radius = (thread.minorDiameter - tolerance) / 2 - minimumThreadWall
+        let cornerY = metrics.baseSize.y / 2 + abs(yOffset)
+        let cornerX = (radius * radius - cornerY * cornerY).squareRoot()
+        let centers = 2 * cornerX - metrics.baseSize.x
+        let bodies = hasCutout ? outerDiameter - 2 * tolerance - moduleBodyWidth : nil
+        return (centers, bodies)
     }
 
     /// The number of modules to make room for: as many as asked for, as long as they fit
@@ -70,8 +96,8 @@ struct HoleMount: Geometry3D {
     var main: any Geometry3D {
         let latchSize = metrics.latchSpaceSize
         let slotCount = fittingSlotCount
-        let latchSpaceWidth = latchSize.x + moduleBodyWidth * Double(slotCount - 1)
-        let bodyWidthFull = moduleBodyWidth * Double(slotCount) + tolerance
+        let latchSpaceWidth = latchSize.x + moduleSpacing * Double(slotCount - 1)
+        let bodyWidthFull = moduleSpacing * Double(slotCount - 1) + moduleBodyWidth + tolerance
 
         Screw(thread: thread, length: fullLength)
             .rotated(z: 80°)
@@ -89,14 +115,14 @@ struct HoleMount: Geometry3D {
                 KeystoneSlot()
                     .rotated(y: 180°)
                     .translated(y: yOffset, z: metrics.baseSize.z)
-                    .repeated(along: .x, step: moduleBodyWidth, count: slotCount)
+                    .repeated(along: .x, step: moduleSpacing, count: slotCount)
                     .aligned(at: .centerX)
 
                 let minorCircle = Circle(diameter: thread.minorDiameter - tolerance)
                 let majorCircle = Circle(diameter: outerDiameter - tolerance)
 
                 for i in 0..<slotCount {
-                    let x1 = (-latchSpaceWidth / 2) + moduleBodyWidth * Double(i)
+                    let x1 = (-latchSpaceWidth / 2) + moduleSpacing * Double(i)
                     let p1 = Vector2D(x1, minorCircle.correspondingCoordinate(for: x1))
                     let p2 = Vector2D(x1 + latchSize.x, minorCircle.correspondingCoordinate(for: x1 + latchSize.x))
 
