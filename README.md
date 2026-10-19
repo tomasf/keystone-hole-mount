@@ -17,4 +17,4 @@ needs.
 
 This model uses [Cadova](https://github.com/tomasf/Cadova), [Helical](https://github.com/tomasf/Helical) and
 [my Keystone library](https://github.com/tomasf/Keystone).
-Also available on [Printables](https://www.printables.com/model/1025872-hole-mount-keystone-module-holder).
+Also available on [MakerWorld](https://makerworld.com/en/models/1896193-hole-mount-keystone-module-holder).
